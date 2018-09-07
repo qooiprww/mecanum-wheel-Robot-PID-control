@@ -2,7 +2,7 @@ import math
 import time
 import RTIMU
 
-SETTINGS_FILE = "/home/pi/script/RTIMULib.ini"
+SETTINGS_FILE = "/home/pi/jbc/scripts/RTIMULib.ini"
 s = RTIMU.Settings(SETTINGS_FILE)
 imu = RTIMU.RTIMU(s)
 
