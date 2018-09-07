@@ -2,10 +2,10 @@ mecanum-wheel-Robot-PID-control
 ====
 MPU-9250 sensor setup on Raspberry Pi 3B
 ----
-# 1. Build the connection
+### 1. Build the connection
 Connect `SCL` & `SDA` pin to pin5 & pin3 of Raspberry Pi, then connect `Vcc` & `Ground` pin to the 3.3V power pin(pin1) & Ground pin of Raspberry Pi<br>
 ![connection](https://github.com/qooiprww/mecanum-wheel-Robot-PID-control/blob/master/raspberry-pi-mpu6050-six-axis-gyro-accelerometer-5.jpg "MPU-9250")
-# 2. Setup the Raspberry Pi
+### 2. Setup the Raspberry Pi
 First we set up a folder for the project in the /home/pi directory and get the i2c tools installed
 ```Bash 
 mkdir jbc
@@ -14,7 +14,7 @@ mkdir scripts
 sudo apt-get install i2c-tools
 ```
 Click the Menu in the top Left Corner, go to Prefrences->Raspberry Pi Configuration->Interfaces and enable i2c (this will require a reboot).<br>
-# 3. Setup the environment
+### 3. Setup the environment
 ```Bash
 sudo i2cdetect -y 1
    ```
@@ -43,7 +43,7 @@ The last thing is to setup our working directory
 cp -r /home/pi/jbc/RTIMULib2/RTEllipsoidFit/ /home/pi/jbc/
 ```
 
-# 4. Calibrating the MPU-9250 on the Raspberry Pi
+### 4. Calibrating the MPU-9250 on the Raspberry Pi
 Change to the RTEllipsoidFit folder and run RTIMULibCal:
 ```Bash 
 cd /home/pi/jbc/RTEllipsoidFit/
@@ -55,5 +55,5 @@ After finished, copy the sonser data file to our working dictionary
 cp RTIMULib.ini /home/pi/jbc/scripts/
 ```
 
-# 5. Copy the script
+### 5. Copy the script
 Download the [imu2.py](https://github.com/qooiprww/mecanum-wheel-Robot-PID-control/blob/master/imu2.py) file and place it under scripts folder
