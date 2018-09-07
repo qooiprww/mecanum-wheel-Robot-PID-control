@@ -13,7 +13,8 @@ sudo apt-get install i2c-tools
 ```Bash
 sudo i2cdetect -y 1
    ```
-If the number 68 is in the grid that displays, mpu is detected<br>
+If the number 68 is in the grid that displays, mpu is detected.<br>
+
 5. 
 ```Bash 
 sudo apt-get install cmake
