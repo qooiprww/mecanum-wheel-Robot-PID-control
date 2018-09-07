@@ -9,17 +9,17 @@ MPU-9250 sensor setup on Raspberry Pi 3B
 sudo apt-get install i2c-tools
 ```
 3. Click the Menu in the top Left Corner, go to Prefrences->Raspberry Pi Configuration->Interfaces and enable i2c (this will require a reboot).<br>
-4. 
-```Bash 
+4.
+```Bash
 sudo i2cdetect -y 1
-```
-If the number 68 is in the grid that displays, mpu is detected\<br>
+   ```
+If the number 68 is in the grid that displays, mpu is detected<br>
 5. 
 ```Bash 
-sudo apt-get install cmake<br>
+sudo apt-get install cmake
 ```
 6. 
 ```Bash 
-sudo apt-get install python-dev<br>
+sudo apt-get install python-dev
 ```
 7. 
