@@ -58,5 +58,5 @@ cp RTIMULib.ini /home/pi/jbc/scripts/
 
 ### 5. Copy the script
 Download the [imu2.py](https://github.com/qooiprww/mecanum-wheel-Robot-PID-control/blob/master/imu2.py) file and place it under scripts folder<br>
-[MPU-9250 sensor setup on Arduino Uno](#mpu-9250-sensor-setup-on-arduino-uno)
+MPU-9250 sensor setup on Arduino Uno
 ------
