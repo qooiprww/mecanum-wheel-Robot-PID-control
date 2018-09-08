@@ -1,7 +1,7 @@
 mecanum-wheel-Robot-PID-control
 ====
-[MPU-9250 sensor setup on Raspberry Pi 3B](## mpu-9250-sensor-setup-on-raspberry-pi-3b)<br>
-[For Arduino Uno](## mpu-9250-sensor-setup-on-arduino-uno)<br>
+[MPU-9250 sensor setup on Raspberry Pi 3B](##mpu-9250-sensor-setup-on-raspberry-pi-3b)<br>
+[For Arduino Uno](##mpu-9250-sensor-setup-on-arduino-uno)<br>
 ## MPU-9250 sensor setup on Raspberry Pi 3B
 ### 1. Build the connection
 Connect `SCL` & `SDA` pin to pin5 & pin3 of Raspberry Pi, then connect `Vcc` & `Ground` pin to the 3.3V power pin(pin1) & Ground pin of Raspberry Pi<br>
