@@ -61,4 +61,5 @@ Download the [imu2.py](https://github.com/qooiprww/mecanum-wheel-Robot-PID-contr
 ## MPU-9250 sensor setup on Arduino Uno
 ### 1. Build the connection
 Connect `SCL` & `SDA` pin to A5 & A4 of Arduino Uno, then connect `Vcc` & `Ground` pin to the 3.3V power pin(pin1) & Ground pin of Arduino Uno<br>
-![connection](https://github.com/qooiprww/mecanum-wheel-Robot-PID-control/blob/master/arduino-and-mpu9250.png "MPU-9250 & Arduino")
+![connection](https://github.com/qooiprww/mecanum-wheel-Robot-PID-control/blob/master/arduino-and-mpu9250.png "MPU-9250 & Arduino")<br>
+### 2. Download & install Arduino Librarys
