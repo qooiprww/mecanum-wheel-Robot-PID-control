@@ -59,4 +59,5 @@ cp RTIMULib.ini /home/pi/jbc/scripts/
 ### 5. Copy the script
 Download the [imu2.py](https://github.com/qooiprww/mecanum-wheel-Robot-PID-control/blob/master/imu2.py) file and place it under scripts folder<br>
 ## MPU-9250 sensor setup on Arduino Uno
-
+### 1. Build the connection
+Connect `SCL` & `SDA` pin to A5 & A4 of Arduino Uno, then connect `Vcc` & `Ground` pin to the 3.3V power pin(pin1) & Ground pin of Arduino Uno<br>
