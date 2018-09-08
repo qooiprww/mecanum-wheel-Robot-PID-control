@@ -5,7 +5,7 @@ mecanum-wheel-Robot-PID-control
 ## MPU-9250 sensor setup on Raspberry Pi 3B
 ### 1. Build the connection
 Connect `SCL` & `SDA` pin to pin5 & pin3 of Raspberry Pi, then connect `Vcc` & `Ground` pin to the 3.3V power pin(pin1) & Ground pin of Raspberry Pi<br>
-![connection](https://github.com/qooiprww/mecanum-wheel-Robot-PID-control/blob/master/raspberry-pi-mpu6050-six-axis-gyro-accelerometer-5.jpg "MPU-9250")
+![connection](https://github.com/qooiprww/mecanum-wheel-Robot-PID-control/blob/master/raspberry-pi-mpu6050-six-axis-gyro-accelerometer-5.jpg "MPU-9250 & Raspberry Pi")
 ### 2. Setup the Raspberry Pi
 First we set up a folder for the project in the /home/pi directory and get the i2c tools installed
 ```Bash 
@@ -61,3 +61,4 @@ Download the [imu2.py](https://github.com/qooiprww/mecanum-wheel-Robot-PID-contr
 ## MPU-9250 sensor setup on Arduino Uno
 ### 1. Build the connection
 Connect `SCL` & `SDA` pin to A5 & A4 of Arduino Uno, then connect `Vcc` & `Ground` pin to the 3.3V power pin(pin1) & Ground pin of Arduino Uno<br>
+![connection](https://github.com/qooiprww/mecanum-wheel-Robot-PID-control/blob/master/arduino-and-mpu9250.png "MPU-9250 & Arduino")
