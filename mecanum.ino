@@ -57,6 +57,7 @@ void setup()
 // Arduino initializations
   Wire.begin();
   Serial.begin(115200);
+  Serial.begin(9600);
   
 // Set accelerometers low pass filter at 5Hz
   I2CwriteByte(MPU9250_ADDRESS,29,0x06);
@@ -130,115 +131,190 @@ void loop()
   Serial.println("");
   Serial.print (Input,DEC); 
   Serial.println("");
-  FrontRight.setSpeed(125+spd);
-  RearRight.setSpeed(125+spd);
-  RearLeft.setSpeed(125-spd); 
-  FrontLeft.setSpeed(125-spd);
   Serial.print (spd,DEC);
   Serial.println("");
-  moveForward(100,spd);
+  if (Serial.available()) {
+    char cmd = Serial.read();
+    if(cmd == 'w'){
+      moveForward(spd);
+    }
+    else if(cmd == 's'){
+      moveBackward(spd);
+    }
+    else if(cmd == 'a'){
+      moveLeft(spd);
+    }
+    else if(cmd == 'd'){
+      moveRight(spd);
+    }
+    else if(cmd == 'q'){
+      moveLeftForward(spd);
+    }
+    else if(cmd == 'e'){
+      moveRightForward(spd);
+    }
+    else if(cmd == 'z'){
+      moveLeftBackward(spd);
+    }
+    else if(cmd == 'c'){
+      moveRightBackward(spd);
+    }
+    else if(cmd == '1'){
+      rotateLeft();
+    }
+    else if(cmd == '3'){
+      rotateRight();
+    }
+    else if(cmd == 'x'){
+      STOP();
+    }
+  }
 }
 
-void STOP(int t) {
+void STOP() {
+  for(;Serial.read() == 'j';){
   FrontLeft.run(RELEASE);
   FrontRight.run(RELEASE);
   RearLeft.run(RELEASE);
   RearRight.run(RELEASE);
-  delay(t);
+  if(Serial.read() == 'k'){
+    break;
+  }
+  }
 }
-void moveForward(int t, double s) {
-  FrontRight.setSpeed(125+spd);
-  RearRight.setSpeed(125+spd);
-  RearLeft.setSpeed(125-spd); 
-  FrontLeft.setSpeed(125-spd);
+void moveForward(double s) {
+  for(;Serial.read() == 'j';){
+  FrontRight.setSpeed(125+s);
+  RearRight.setSpeed(125+s);
+  RearLeft.setSpeed(125-s); 
+  FrontLeft.setSpeed(125-s);
   FrontLeft.run(FORWARD);
   FrontRight.run(FORWARD);
   RearLeft.run(FORWARD);
   RearRight.run(FORWARD);
-  delay(t);
+  if(Serial.read() == 'k'){
+    break;
+  }
+  }
 }
-void moveBackward(int t, double s) {
-  FrontRight.setSpeed(125-spd);
-  RearRight.setSpeed(125-spd);
-  RearLeft.setSpeed(125+spd); 
-  FrontLeft.setSpeed(125+spd);
+void moveBackward(double s) {
+  for(;Serial.read() == 'j';){
+  FrontRight.setSpeed(125-s);
+  RearRight.setSpeed(125-s);
+  RearLeft.setSpeed(125+s); 
+  FrontLeft.setSpeed(125+s);
   FrontLeft.run(BACKWARD);
   FrontRight.run(BACKWARD);
   RearLeft.run(BACKWARD);
   RearRight.run(BACKWARD);
-  delay(t);
+  if(Serial.read() == 'k'){
+    break;
+  }
+  }
 }
-void moveLeft(int t, double s) {
-  FrontRight.setSpeed(125+spd);
-  RearRight.setSpeed(125-spd);
-  RearLeft.setSpeed(125-spd); 
-  FrontLeft.setSpeed(125+spd);
+void moveLeft(double s) {
+  for(;Serial.read() == 'j';){
+  FrontRight.setSpeed(125+s);
+  RearRight.setSpeed(125-s);
+  RearLeft.setSpeed(125-s); 
+  FrontLeft.setSpeed(125+s);
   FrontLeft.run(BACKWARD);
   FrontRight.run(FORWARD);
   RearLeft.run(FORWARD);
   RearRight.run(BACKWARD);
-  delay(t);
+  if(Serial.read() == 'k'){
+    break;
+  }
+  }
 }
-void moveRight(int t, double s) {
-  FrontRight.setSpeed(125-spd);
-  RearRight.setSpeed(125+spd);
-  RearLeft.setSpeed(125+spd); 
-  FrontLeft.setSpeed(125-spd);
+void moveRight( double s) {
+  for(;Serial.read() == 'j';){
+  FrontRight.setSpeed(125-s);
+  RearRight.setSpeed(125+s);
+  RearLeft.setSpeed(125+s); 
+  FrontLeft.setSpeed(125-s);
   FrontLeft.run(FORWARD);
   FrontRight.run(BACKWARD);
   RearLeft.run(BACKWARD);
   RearRight.run(FORWARD);
-  delay(t);
+  if(Serial.read() == 'k'){
+    break;
+  }
+  }
 }
-void moveLeftForward(int t, double s) {
-  FrontRight.setSpeed(125+spd);
-  RearLeft.setSpeed(125-spd); 
+void moveLeftForward(double s) {
+  for(;Serial.read() == 'j';){
+  FrontRight.setSpeed(125+s);
+  RearLeft.setSpeed(125-s); 
   FrontLeft.run(RELEASE);
   FrontRight.run(FORWARD);
   RearLeft.run(FORWARD);
   RearRight.run(RELEASE);
-  delay(t);
+  if(Serial.read() == 'k'){
+    break;
+  }
+  }
 }
-void moveRightForward(int t, double s) {
-  RearRight.setSpeed(125+spd);
-  FrontLeft.setSpeed(125-spd);
+void moveRightForward(double s) {
+  for(;Serial.read() == 'j';){
+  RearRight.setSpeed(125+s);
+  FrontLeft.setSpeed(125-s);
   FrontLeft.run(FORWARD);
   FrontRight.run(RELEASE);
   RearLeft.run(RELEASE);
   RearRight.run(FORWARD);
-  delay(t);
+  if(Serial.read() == 'k'){
+    break;
+  }
+  }
 }
-void moveLeftBackward(int t, double s) {
-  RearRight.setSpeed(125-spd);
-  FrontLeft.setSpeed(125+spd);
+void moveLeftBackward(double s) {
+  for(;Serial.read() == 'j';){
+  RearRight.setSpeed(125-s);
+  FrontLeft.setSpeed(125+s);
   FrontLeft.run(BACKWARD);
   FrontRight.run(RELEASE);
   RearLeft.run(RELEASE);
   RearRight.run(BACKWARD);
-  delay(t);
+  if(Serial.read() == 'k'){
+    break;
+  }
+  }
 }
-void moveRightBackward(int t, double s) {
-  FrontRight.setSpeed(125-spd);
-  RearLeft.setSpeed(125+spd); 
+void moveRightBackward(double s) {
+  for(;Serial.read() == 'j';){
+  FrontRight.setSpeed(125-s);
+  RearLeft.setSpeed(125+s); 
   FrontLeft.run(RELEASE);
   FrontRight.run(BACKWARD);
   RearLeft.run(BACKWARD);
   RearRight.run(RELEASE);
-  delay(t);
+  if(Serial.read() == 'k'){
+    break;
+  }
+  }
 }
-void rotateLeft(int t, double s) {
+void rotateLeft() {
+  for(;Serial.read() == 'j';){
   FrontLeft.run(BACKWARD);
   FrontRight.run(FORWARD);
   RearLeft.run(BACKWARD);
   RearRight.run(FORWARD);
-  delay(t);
+  if(Serial.read() == 'k'){
+    break;
+  }
+  }
 }
-void rotateRight(int t, double s) {
+void rotateRight() {
+  for(;Serial.read() == 'j';){
   FrontLeft.run(FORWARD);
   FrontRight.run(BACKWARD);
   RearLeft.run(FORWARD);
   RearRight.run(BACKWARD);
-  delay(t);
+  if(Serial.read() == 'k'){
+    break;
+  }
+  }
 }
 
 double resetcompass(){
