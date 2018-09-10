@@ -63,3 +63,7 @@ Download the [imu2.py](https://github.com/qooiprww/mecanum-wheel-Robot-PID-contr
 Connect `SCL` & `SDA` pin to A5 & A4 of Arduino Uno, then connect `Vcc` & `Ground` pin to the 3.3V power pin(pin1) & Ground pin of Arduino Uno<br>
 ![connection](https://github.com/qooiprww/mecanum-wheel-Robot-PID-control/blob/master/arduino-and-mpu9250.png "MPU-9250 & Arduino")<br>
 ### 2. Download & install Arduino Librarys
+Download library zip files from the [Arduino_Library](https://github.com/qooiprww/mecanum-wheel-Robot-PID-control/blob/master/Arduino_Library).<br>
+Unpack the folders and paste them to the `library` folder under Arduino root directory.
+### 3. Copy the script
+Download the [mecanum.ino](https://github.com/qooiprww/mecanum-wheel-Robot-PID-control/blob/master/mecanum.ino) file and load it onto Arduino Uno.
