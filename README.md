@@ -1,6 +1,6 @@
 mecanum-wheel-Robot-PID-control
 ====
-### Arduino Uno, motor control shield L293D, MPU-9250 sensor mudule, 4 /* JGA25-370 motor, jumper wires, 4*dumpers & 3s lipo are used in the actual project.
+### Arduino Uno, motor control shield L293D, MPU-9250 sensor mudule, 4 * JGA25-370 motor, jumper wires, 4*dumpers & 3s lipo are used in the actual project.
 [MPU-9250 sensor setup on Raspberry Pi 3B](#mpu-9250-sensor-setup-on-raspberry-pi-3b)<br>
 [MPU-9250 sensor setup on Arduino Uno](#mpu-9250-sensor-setup-on-arduino-uno)<br>
 ## MPU-9250 sensor setup on Raspberry Pi 3B
