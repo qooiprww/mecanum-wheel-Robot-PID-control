@@ -1,7 +1,8 @@
 #include<AFMotor.h>
 #include <Wire.h>
 #include <TimerOne.h>
- 
+#include <PID_v1.h>
+
 #define MPU9250_ADDRESS 0x68
 #define MAG_ADDRESS 0x0C
  
@@ -18,15 +19,6 @@
 #define MIN_MOTOR_SPD 100   //Minium Speed(PWM) for motors
 #define MAX_MOTOR_SPD 255   //Maximum Speed(PWM) for motors
 
-struct dataStruct {
-  unsigned long _micros;  // to save response times
-  int Xposition;          // The Joystick position values
-  int Yposition;
-  bool switch0;           // The Joystick push-down switch
-  bool switch1;           // Rotate Left
-  bool switch2;           // Rotate Right
-} myData;       
-
 #define M_STOP      0
 #define M_FORWARD   1
 #define M_BACKWARD  2
@@ -42,36 +34,18 @@ struct dataStruct {
 #define CMD_moveRightBackward 8
 #define CMD_rotateLeft        9
 #define CMD_rotateRight       10
-// This function read Nbytes bytes from I2C device at address Address. 
-// Put read bytes starting at register Register in the Data array. 
-void I2Cread(uint8_t Address, uint8_t Register, uint8_t Nbytes, uint8_t* Data)
-{
-// Set register address
-Wire.beginTransmission(Address);
-Wire.write(Register);
-Wire.endTransmission();
 
-// Read Nbytes
-Wire.requestFrom(Address, Nbytes); 
-uint8_t index=0;
-while (Wire.available())
-Data[index++]=Wire.read();
-}
- 
- 
-// Write a byte (Data) in device (Address) at register (Register)
-void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
-{
-// Set register address
-Wire.beginTransmission(Address);
-Wire.write(Register);
-Wire.write(Data);
-Wire.endTransmission();
-}
- 
+double Setpoint, Input, Output;
+long int cpt=0;
+double consKp=2, consKi=0.02, consKd=0.011;
+int16_t imx, imy, imz;
+int16_t mx, my, mz;
+int con = 0;
 // Initial time
 long int ti;
 volatile bool intFlag=false;
+PID myPID(&Input, &Output, &Setpoint, consKp, consKi, consKd, DIRECT);
+
 AF_DCMotor FrontRight(1);
 AF_DCMotor RearRight(2);
 AF_DCMotor RearLeft(3);
@@ -81,164 +55,241 @@ AF_DCMotor FrontLeft(4);
 void setup()
 {
 // Arduino initializations
-    Wire.begin();
-    Serial.begin(115200);
-    FrontRight.setSpeed(255);
-    RearRight.setSpeed(255);
-    RearLeft.setSpeed(255);
-    FrontLeft.setSpeed(255);
- 
+  Wire.begin();
+  Serial.begin(115200);
+  
 // Set accelerometers low pass filter at 5Hz
-I2CwriteByte(MPU9250_ADDRESS,29,0x06);
+  I2CwriteByte(MPU9250_ADDRESS,29,0x06);
 // Set gyroscope low pass filter at 5Hz
-I2CwriteByte(MPU9250_ADDRESS,26,0x06);
+  I2CwriteByte(MPU9250_ADDRESS,26,0x06);
  
  
 // Configure gyroscope range
-I2CwriteByte(MPU9250_ADDRESS,27,GYRO_FULL_SCALE_1000_DPS);
+  I2CwriteByte(MPU9250_ADDRESS,27,GYRO_FULL_SCALE_1000_DPS);
 // Configure accelerometers range
-I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_4_G);
+  I2CwriteByte(MPU9250_ADDRESS,28,ACC_FULL_SCALE_4_G);
 // Set by pass mode for the magnetometers
-I2CwriteByte(MPU9250_ADDRESS,0x37,0x02);
- 
+  I2CwriteByte(MPU9250_ADDRESS,0x37,0x02);
 // Request continuous magnetometer measurements in 16 bits
-I2CwriteByte(MAG_ADDRESS,0x0A,0x16);
+  I2CwriteByte(MAG_ADDRESS,0x0A,0x16);
  
-pinMode(13, OUTPUT);
-Timer1.initialize(10000); // initialize timer1, and set a 1/2 second period
-Timer1.attachInterrupt(callback); // attaches callback() as a timer overflow interrupt
- 
+  pinMode(13, OUTPUT);
+  Timer1.initialize(10000); // initialize timer1, and set a 1/2 second period
+  Timer1.attachInterrupt(callback); // attaches callback() as a timer overflow interrupt
  
 // Store initial time
-ti=millis();
+  ti=millis();
+
+  while (!intFlag);
+  intFlag=false;
+  Setpoint = resetcompass();
+  myPID.SetMode(AUTOMATIC);
+  myPID.SetOutputLimits(-125, 130);
 }
- 
-// Counter
-long int cpt=0;
- 
-void callback()
-{ 
-intFlag=true;
-digitalWrite(13, digitalRead(13) ^ 1);
-}
- 
-// Main loop, read and display data
+
 void loop()
 {
-moveLeft();
-
-while (!intFlag);
-intFlag=false;
- 
-// Display time
-Serial.print (millis()-ti,DEC);
-Serial.print ("\t");
- 
-
- 
+  con++;
+  if(con == 100){
+    Setpoint=resetcompass();
+    con = 0;
+  }
+  while (!intFlag);
+  intFlag=false;
  
 // _____________________
 // ::: Magnetometer :::
  
+  mx = 0;
+  my = 0;
+  mz = 0;
+  for(int i = 0; i < 10; i++){
+  // Read register Status 1 and wait for the DRDY: Data Ready
+    uint8_t ST1;
+    do
+    {
+    I2Cread(MAG_ADDRESS,0x02,1,&ST1);
+    }
+    while (!(ST1&0x01));
  
-// Read register Status 1 and wait for the DRDY: Data Ready
+  // Read magnetometer data 
+    uint8_t Mag[7]; 
+    I2Cread(MAG_ADDRESS,0x03,7,Mag);
  
-uint8_t ST1;
-do
+  // Magnetometer 
+    mx += (Mag[3]<<8 | Mag[2]);
+    my += (Mag[1]<<8 | Mag[0]);
+    mz += (Mag[5]<<8 | Mag[4]);
+}
+
+  Input = atan2(my/10,mx/10)*100;
+  myPID.SetTunings(consKp, consKi, consKd);
+  myPID.Compute();
+  double spd = Output;
+  Serial.println(Setpoint,DEC);
+  Serial.println("");
+  Serial.print (Input,DEC); 
+  Serial.println("");
+  FrontRight.setSpeed(125+spd);
+  RearRight.setSpeed(125+spd);
+  RearLeft.setSpeed(125-spd); 
+  FrontLeft.setSpeed(125-spd);
+  Serial.print (spd,DEC);
+  Serial.println("");
+  moveForward(100,spd);
+}
+
+void STOP(int t) {
+  FrontLeft.run(RELEASE);
+  FrontRight.run(RELEASE);
+  RearLeft.run(RELEASE);
+  RearRight.run(RELEASE);
+  delay(t);
+}
+void moveForward(int t, double s) {
+  FrontRight.setSpeed(125+spd);
+  RearRight.setSpeed(125+spd);
+  RearLeft.setSpeed(125-spd); 
+  FrontLeft.setSpeed(125-spd);
+  FrontLeft.run(FORWARD);
+  FrontRight.run(FORWARD);
+  RearLeft.run(FORWARD);
+  RearRight.run(FORWARD);
+  delay(t);
+}
+void moveBackward(int t, double s) {
+  FrontRight.setSpeed(125-spd);
+  RearRight.setSpeed(125-spd);
+  RearLeft.setSpeed(125+spd); 
+  FrontLeft.setSpeed(125+spd);
+  FrontLeft.run(BACKWARD);
+  FrontRight.run(BACKWARD);
+  RearLeft.run(BACKWARD);
+  RearRight.run(BACKWARD);
+  delay(t);
+}
+void moveLeft(int t, double s) {
+  FrontRight.setSpeed(125+spd);
+  RearRight.setSpeed(125-spd);
+  RearLeft.setSpeed(125-spd); 
+  FrontLeft.setSpeed(125+spd);
+  FrontLeft.run(BACKWARD);
+  FrontRight.run(FORWARD);
+  RearLeft.run(FORWARD);
+  RearRight.run(BACKWARD);
+  delay(t);
+}
+void moveRight(int t, double s) {
+  FrontRight.setSpeed(125-spd);
+  RearRight.setSpeed(125+spd);
+  RearLeft.setSpeed(125+spd); 
+  FrontLeft.setSpeed(125-spd);
+  FrontLeft.run(FORWARD);
+  FrontRight.run(BACKWARD);
+  RearLeft.run(BACKWARD);
+  RearRight.run(FORWARD);
+  delay(t);
+}
+void moveLeftForward(int t, double s) {
+  FrontRight.setSpeed(125+spd);
+  RearLeft.setSpeed(125-spd); 
+  FrontLeft.run(RELEASE);
+  FrontRight.run(FORWARD);
+  RearLeft.run(FORWARD);
+  RearRight.run(RELEASE);
+  delay(t);
+}
+void moveRightForward(int t, double s) {
+  RearRight.setSpeed(125+spd);
+  FrontLeft.setSpeed(125-spd);
+  FrontLeft.run(FORWARD);
+  FrontRight.run(RELEASE);
+  RearLeft.run(RELEASE);
+  RearRight.run(FORWARD);
+  delay(t);
+}
+void moveLeftBackward(int t, double s) {
+  RearRight.setSpeed(125-spd);
+  FrontLeft.setSpeed(125+spd);
+  FrontLeft.run(BACKWARD);
+  FrontRight.run(RELEASE);
+  RearLeft.run(RELEASE);
+  RearRight.run(BACKWARD);
+  delay(t);
+}
+void moveRightBackward(int t, double s) {
+  FrontRight.setSpeed(125-spd);
+  RearLeft.setSpeed(125+spd); 
+  FrontLeft.run(RELEASE);
+  FrontRight.run(BACKWARD);
+  RearLeft.run(BACKWARD);
+  RearRight.run(RELEASE);
+  delay(t);
+}
+void rotateLeft(int t, double s) {
+  FrontLeft.run(BACKWARD);
+  FrontRight.run(FORWARD);
+  RearLeft.run(BACKWARD);
+  RearRight.run(FORWARD);
+  delay(t);
+}
+void rotateRight(int t, double s) {
+  FrontLeft.run(FORWARD);
+  FrontRight.run(BACKWARD);
+  RearLeft.run(FORWARD);
+  RearRight.run(BACKWARD);
+  delay(t);
+}
+
+double resetcompass(){
+  int16_t x=0, y=0, z=0;
+  double set;
+  for(int i = 0; i < 10; i++){
+  uint8_t ST1;
+  do
+  {
+  I2Cread(MAG_ADDRESS,0x02,1,&ST1);
+  }
+  while (!(ST1&0x01));
+  uint8_t Mag[7]; 
+  I2Cread(MAG_ADDRESS,0x03,7,Mag);
+  x+=(Mag[3]<<8 | Mag[2]);
+  y+=(Mag[1]<<8 | Mag[0]);
+  z+=(Mag[5]<<8 | Mag[4]);
+  }
+  set = atan2(y/10,x/10)*100;
+  return set;
+}
+
+void callback()
+  { 
+  intFlag=true;
+  digitalWrite(13, digitalRead(13) ^ 1);
+}
+
+// This function read Nbytes bytes from I2C device at address Address. 
+// Put read bytes starting at register Register in the Data array. 
+void I2Cread(uint8_t Address, uint8_t Register, uint8_t Nbytes, uint8_t* Data)
 {
-I2Cread(MAG_ADDRESS,0x02,1,&ST1);
-}
-while (!(ST1&0x01));
- 
-// Read magnetometer data 
-uint8_t Mag[7]; 
-I2Cread(MAG_ADDRESS,0x03,7,Mag);
- 
-// Create 16 bits values from 8 bits data
- 
-// Magnetometer
-int16_t mx=-(Mag[3]<<8 | Mag[2]);
-int16_t my=-(Mag[1]<<8 | Mag[0]);
-int16_t mz=-(Mag[5]<<8 | Mag[4]);
- 
- 
-// Magnetometer
-Serial.print (mx+200,DEC); 
-Serial.print ("\t");
-Serial.print (my-70,DEC);
-Serial.print ("\t");
-Serial.print (mz-700,DEC); 
-Serial.print ("\t");
- 
-// End of line
-Serial.println("");
-// delay(100); 
-}
+// Set register address
+  Wire.beginTransmission(Address);
+  Wire.write(Register);
+  Wire.endTransmission();
 
-void STOP() {
-  FrontLeft.run(RELEASE);
-  FrontRight.run(RELEASE);
-  RearLeft.run(RELEASE);
-  RearRight.run(RELEASE);
+// Read Nbytes
+  Wire.requestFrom(Address, Nbytes); 
+  uint8_t index=0;
+  while (Wire.available())
+  Data[index++]=Wire.read();
 }
-void moveForward() {
-  FrontLeft.run(FORWARD);
-  FrontRight.run(FORWARD);
-  RearLeft.run(FORWARD);
-  RearRight.run(FORWARD);
+ 
+// Write a byte (Data) in device (Address) at register (Register)
+void I2CwriteByte(uint8_t Address, uint8_t Register, uint8_t Data)
+{
+// Set register address
+  Wire.beginTransmission(Address);
+  Wire.write(Register);
+  Wire.write(Data);
+  Wire.endTransmission();
 }
-void moveBackward() {
-  FrontLeft.run(BACKWARD);
-  FrontRight.run(BACKWARD);
-  RearLeft.run(BACKWARD);
-  RearRight.run(BACKWARD);
-}
-void moveLeft() {
-  FrontLeft.run(BACKWARD);
-  FrontRight.run(FORWARD);
-  RearLeft.run(FORWARD);
-  RearRight.run(BACKWARD);
-}
-void moveRight() {
-  FrontLeft.run(FORWARD);
-  FrontRight.run(BACKWARD);
-  RearLeft.run(BACKWARD);
-  RearRight.run(FORWARD);
-}
-void moveLeftForward() {
-  FrontLeft.run(RELEASE);
-  FrontRight.run(FORWARD);
-  RearLeft.run(FORWARD);
-  RearRight.run(RELEASE);
-}
-void moveRightForward() {
-  FrontLeft.run(FORWARD);
-  FrontRight.run(RELEASE);
-  RearLeft.run(RELEASE);
-  RearRight.run(FORWARD);
-}
-void moveLeftBackward() {
-  FrontLeft.run(BACKWARD);
-  FrontRight.run(RELEASE);
-  RearLeft.run(RELEASE);
-  RearRight.run(BACKWARD);
-}
-void moveRightBackward() {
-  FrontLeft.run(RELEASE);
-  FrontRight.run(BACKWARD);
-  RearLeft.run(BACKWARD);
-  RearRight.run(RELEASE);
-}
-void rotateLeft() {
-  FrontLeft.run(BACKWARD);
-  FrontRight.run(FORWARD);
-  RearLeft.run(BACKWARD);
-  RearRight.run(FORWARD);
-}
-void rotateRight() {
-  FrontLeft.run(FORWARD);
-  FrontRight.run(BACKWARD);
-  RearLeft.run(FORWARD);
-  RearRight.run(BACKWARD);
-}
-
+ 
